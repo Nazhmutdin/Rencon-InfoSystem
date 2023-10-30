@@ -37,6 +37,11 @@ class NDTShema(BaseModel):
         populate_by_name=True,
         from_attributes=True
     )
+    
+
+    @classmethod
+    def model_validate_many(cls, objs: list[Any], *, strict: bool | None = None, from_attributes: bool | None = None, context: dict[str, Any] | None = None) -> list["NDTShema"]:
+        return [super().model_validate(obj, strict=strict, from_attributes=from_attributes, context=context) for obj in objs]
 
 
     @field_validator("latest_welding_date")

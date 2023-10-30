@@ -55,19 +55,9 @@ class WelderCertificationShema(BaseModel):
     )
 
 
-    @property
-    def alias_to_field_ref(cls) -> dict[str, str]:
-        field_dict: dict[str, str] = {}
-
-        for key, value in cls.model_fields.items():
-            if value.alias != None:
-                field_dict.update(
-                    {
-                        value.alias: key
-                    }
-                )
-        
-        return field_dict
+    @classmethod
+    def model_validate_many(cls, objs: list[Any], *, strict: bool | None = None, from_attributes: bool | None = None, context: dict[str, Any] | None = None) -> list["WelderCertificationShema"]:
+        return [super().model_validate(obj, strict=strict, from_attributes=from_attributes, context=context) for obj in objs]
     
     
     def set_field_by_alias(self, alias: str, value: str) -> None:

@@ -19,6 +19,7 @@ DateFrom: TypeAlias = str
 DateBefore: TypeAlias = str
 Count: TypeAlias = int
 DomainModel = TypeVar("DomainModel")
+Model = TypeVar("Model", bound=BaseModel)
 
 
 class WelderShema(BaseModel):
@@ -34,11 +35,14 @@ class WelderShema(BaseModel):
     )
 
 
+    @classmethod
+    def model_validate_many(cls, objs: list[Any], *, strict: bool | None = None, from_attributes: bool | None = None, context: dict[str, Any] | None = None) -> list["WelderShema"]:
+        return [super().model_validate(obj, strict=strict, from_attributes=from_attributes, context=context) for obj in objs]
+
+
     @field_validator("kleymo")
     def validate_kleymo(cls, v: str):
         if fullmatch(r"[A-Z0-9]{4}", v.strip()):
             return v
         
         raise ValueError(f"Invalid kleymo: {v}")
-    
-

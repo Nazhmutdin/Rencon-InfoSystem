@@ -5,8 +5,10 @@ from typing import (
     Generic
 )
 
+from pydantic import BaseModel
 
-Model = TypeVar("Model")
+
+Shema = TypeVar("Shema", bound=BaseModel)
 Limit: TypeAlias = int
 Offset: TypeAlias = int
 Kleymo: TypeAlias = str
@@ -33,11 +35,13 @@ class NDTDBRequest:
 
 
 @dataclass
-class DBResponse(Generic[Model]):
-    result: list[Model]
+class DBResponse(Generic[Shema]):
+    result: list[Shema]
     count: int
 
 
 @dataclass
 class WelderCertificationDBRequest:
-    ...
+    limit: Limit
+    offset: Offset
+    kleymos: list[str]
