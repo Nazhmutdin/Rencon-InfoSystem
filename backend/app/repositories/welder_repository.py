@@ -1,15 +1,16 @@
 from typing import Sequence
 
-from sqlalchemy.orm import Session
+from sqlalchemy import any_, or_
+from sqlalchemy.orm import Session, subqueryload
 from sqlalchemy.sql.elements import BinaryExpression
 
 from repositories.welder_certification_repository import WelderCertificationRepository
-from db import WelderModel
+from db import WelderModel, WelderCertificationModel
 from shemas import (
     WelderShema,
-    DBResponse,
-    WelderDBRequest,
-    WelderCertificationDBRequest
+    Result,
+    WelderRequest,
+    WelderCertificationRequest
 )
 
 
@@ -18,36 +19,26 @@ class WelderRepository:
 
     def get(self, ident: str, session: Session) -> WelderShema:
         welder = session.query(WelderModel).get(ident=ident)
-        welder = WelderShema(**welder)
+        welder = WelderShema.model_validate(welder)
 
-        certification_request = WelderCertificationDBRequest(
+        certification_request = WelderCertificationRequest(
             kleymos = [ident]
         )
 
-        welder.certifications = self.certification_repository.get_many(certification_request, session)
+        welder.certifications = self.certification_repository.get_many(certification_request, session).result
 
         return welder
 
 
-    def get_many(self, request: WelderDBRequest, session: Session) -> DBResponse[WelderShema]:
-        result = []
-        welders = WelderShema.model_validate_many(
-            session.query(WelderModel).filter(
-                self._get_kleymo_expression(request.kleymos)
-            ).all()
-        )
-    
-        for welder in welders:
-            cert_request = WelderCertificationDBRequest(
-                kleymos=[welder.kleymo]
-            )
-            welder.certifications = self.certification_repository.get_many(cert_request, session).result
+    def get_many(self, request: WelderRequest, session: Session, limit: int = 100, offset: int = 0) -> Result[WelderShema]:
+        welders = session.query(WelderModel).filter(
+                or_(*self._get_expressions(request))
+            ).options(subqueryload(WelderModel.certifications))
+        
 
-            result.append(welder)
-
-        return DBResponse(
-            count=len(welders),
-            result=result[request.offset: request.offset + request.limit]
+        return Result(
+            count=welders.count(),
+            result=WelderShema.model_validate_many(welders.limit(limit).offset(offset).all())
         )
 
 
@@ -63,5 +54,21 @@ class WelderRepository:
     def _update(self, WelderShema: WelderShema) -> None: ...
 
 
-    def _get_kleymo_expression(self, kleymos: list[str]) -> BinaryExpression:
-        return WelderModel.kleymo.in_(kleymos)
+    def _get_expressions(self, request: WelderRequest) -> list[BinaryExpression]:
+        expressions = []
+
+        self._get_kleymo_expression(request.kleymos, expressions)
+        self._get_name_expression(request.names, expressions)
+
+        return expressions
+
+
+    def _get_kleymo_expression(self, kleymos: list[str] | None, expressions: list[BinaryExpression]) -> None:
+        if kleymos:
+            expressions.append(WelderModel.kleymo.in_(kleymos))
+
+
+    def _get_name_expression(self, names: list[str] | None, expressions: list[BinaryExpression]) -> None:
+        if names:
+            names = [f"%{name}%" for name in names]
+            expressions.append(WelderModel.full_name.ilike(any_(names)))

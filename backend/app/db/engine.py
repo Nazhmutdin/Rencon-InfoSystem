@@ -1,7 +1,17 @@
+import os
+
 from sqlalchemy import create_engine
 from sqlalchemy.orm import declarative_base
+from dotenv import load_dotenv
 
-from settings import USER, DATABASE_PASSWORD, PORT, HOST, DATABASE_NAME
+
+load_dotenv()
+
+DATABASE_PASSWORD = os.getenv("DATABASE_PASSWORD")
+DATABASE_NAME = os.getenv("DATABASE_NAME")
+HOST = os.getenv("HOST")
+USER = os.getenv("USER")
+PORT = os.getenv("PORT")
 
 
 Base = declarative_base()

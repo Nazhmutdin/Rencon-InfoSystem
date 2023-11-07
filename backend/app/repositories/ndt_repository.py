@@ -3,32 +3,32 @@ from typing import Sequence
 from sqlalchemy.sql.elements import BinaryExpression
 from sqlalchemy.orm import Session
 
-from db import NDTModel
+from db import NDTModel, WelderModel
 from shemas import (
     NDTShema,
-    DBResponse,
-    NDTDBRequest
+    Result,
+    NDTRequest
 )
 
 
 class NDTRepository:
 
-    def get(self, ident: str, session: Session) -> DBResponse[NDTShema]:
-        ndt = session.query(NDTModel).get(ident)
+    def get(self, ident: str, session: Session) -> NDTShema:
+        ndt = session.query(WelderModel, NDTModel).join(WelderModel, WelderModel.kleymo == NDTModel.kleymo).get(ident)
 
         return NDTShema.model_validate(ndt)
 
 
-    def get_many(self, request: NDTDBRequest, session: Session) -> DBResponse[NDTShema]:
+    def get_many(self, request: NDTRequest, session: Session, limit: int, offset: int) -> Result[NDTShema]:
         ndts = NDTShema.model_validate_many(
             session.query(NDTModel).filter(
                 self._get_kleymo_expression(request.kleymos)
             ).all()
         )
 
-        return DBResponse(
+        return Result(
             count=len(ndts),
-            result=ndts[request.offset: request.offset + request.limit]
+            result=ndts[offset: offset + limit]
         )
 
 

@@ -1,4 +1,4 @@
-from typing import Any, TypeAlias, Union, Sequence, TypeVar, Generic
+from typing import Any, TypeAlias, TypeVar
 from datetime import date, datetime
 from re import fullmatch
 
@@ -52,19 +52,13 @@ class WelderCertificationShema(BaseModel):
     model_config = ConfigDict(
         populate_by_name=True,
         from_attributes=True
+
     )
 
 
     @classmethod
-    def model_validate_many(cls, objs: list[Any], *, strict: bool | None = None, from_attributes: bool | None = None, context: dict[str, Any] | None = None) -> list["WelderCertificationShema"]:
-        return [super().model_validate(obj, strict=strict, from_attributes=from_attributes, context=context) for obj in objs]
-    
-    
-    def set_field_by_alias(self, alias: str, value: str) -> None:
-        try:
-            self.__dict__[self.alias_to_field_ref[alias]] = value
-        except KeyError:
-            raise KeyError("Invalid key: %s" % (alias))
+    def model_validate_many(cls, objs: list[type[Any]], *, strict: bool | None = None, from_attributes: bool | None = None, context: dict[str, Any] | None = None) -> list["WelderCertificationShema"]:
+        return [cls.model_validate(obj, strict=strict, from_attributes=from_attributes, context=context) for obj in objs]
         
 
     @field_validator("kleymo")

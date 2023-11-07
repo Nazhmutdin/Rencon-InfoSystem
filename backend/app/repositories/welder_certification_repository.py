@@ -6,8 +6,8 @@ from sqlalchemy.sql.elements import BinaryExpression
 from db import WelderCertificationModel
 from shemas import (
     WelderCertificationShema,
-    DBResponse, 
-    WelderCertificationDBRequest
+    Result, 
+    WelderCertificationRequest
 )
 
 
@@ -21,12 +21,12 @@ class WelderCertificationRepository:
         )
 
 
-    def get_many(self, request: WelderCertificationDBRequest, session: Session) -> DBResponse[WelderCertificationShema]:
+    def get_many(self, request: WelderCertificationRequest, session: Session) -> Result[WelderCertificationShema]:
         result = session.query(WelderCertificationModel).filter(
             self._get_kleymo_expression(request.kleymos)
         ).all()
         
-        return DBResponse(
+        return Result(
             count=len(result),
             result=WelderCertificationShema.model_validate_many(result[request.offset: request.offset + request.limit])
         )

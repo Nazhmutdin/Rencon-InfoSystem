@@ -16,32 +16,28 @@ Name: TypeAlias = str
 CertificationNumber: TypeAlias = str
 
 
-@dataclass
-class WelderDBRequest:
-    limit: Limit
-    offset: Offset
-    certification_numbers: list[CertificationNumber]
-    kleymos: list[Kleymo]
-    names: list[Name]
+class WelderRequest(BaseModel):
+    limit: Limit = 100
+    offset: Offset = 0
+    names: list[str] | None = None
+    kleymos: list[str] | None = None
+    certification_numbers: list[str] | None = None
 
 
-@dataclass
-class NDTDBRequest:
-    limit: Limit
-    offset: Offset
-    certification_numbers: list[CertificationNumber]
-    kleymos: list[Kleymo]
-    names: list[Name]
+class WelderCertificationRequest(BaseModel):
+    limit: Limit = 100
+    offset: Offset = 0
+    kleymos: list[str]
 
 
-@dataclass
-class DBResponse(Generic[Shema]):
+class NDTRequest(BaseModel):
+    limit: Limit = 100
+    offset: Offset = 0
+    certification_numbers: list[CertificationNumber] | None = None
+    kleymos: list[Kleymo] | None = None
+    names: list[Name] | None = None
+
+
+class Result(BaseModel, Generic[Shema]):
     result: list[Shema]
     count: int
-
-
-@dataclass
-class WelderCertificationDBRequest:
-    limit: Limit
-    offset: Offset
-    kleymos: list[str]

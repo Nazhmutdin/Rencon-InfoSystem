@@ -14,8 +14,8 @@ class WelderModel(Base):
     full_name = Column(String(), nullable=True)
     birthday = Column(Date(), nullable=True)
     passport_id = Column(String(), nullable=True)
-    certifications = relationship("WelderCertificationTable", backref="welder")
-    ndts = relationship("NDTSummaryTable", backref="welder")
+    certifications = relationship("WelderCertificationModel", backref="welder")
+    ndts = relationship("NDTModel", backref="welder")
 
 
 class WelderCertificationModel(Base):
